@@ -104,23 +104,28 @@ export function extractSymbolsBash(sourceCode: string, filePath: string): CodeSy
         }
       }
       else if (node.type === 'variable_assignment') {
-        const nameNode = node.childForFieldName('name');
-        if (nameNode) {
-          symbols.push({
-            name: getText(nameNode),
-            kind: 'variable',
-            filePath,
-            line: getLineNumber(node),
-            references: [],
-            referencedBy: []
-          });
+        // Only capture script-level variable assignments (direct children of the
+        // program root). Locals inside function bodies are implementation details,
+        // not meaningful vault symbols.
+        if (node.parent?.type === 'program') {
+          const nameNode = node.childForFieldName('name');
+          if (nameNode) {
+            symbols.push({
+              name: getText(nameNode),
+              kind: 'variable',
+              filePath,
+              line: getLineNumber(node),
+              references: [],
+              referencedBy: []
+            });
+          }
         }
       }
       else if (node.type === 'source_command') {
         const sourceNode = node.namedChild(0);
         if (sourceNode) {
           const importText = getText(sourceNode)
-            .replace(/^['"]|['"]$/g, '')
+            .replace(/^['\"]|['\"]$/g, '')
             .trim();
 
           if (importText) {

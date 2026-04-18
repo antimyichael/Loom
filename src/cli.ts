@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * cli.ts - Loom CLI - Parse TypeScript projects and generate Obsidian vaults
+ * cli.ts - Loom CLI - Parse programming projects and generate Obsidian vaults
  */
 
 import { resolve, relative, join, extname } from 'path';
@@ -11,6 +11,29 @@ import { writeNoteIfChanged, ensureVaultStructure } from './writer/diffWriter.js
 import { loadIndex, saveIndex, upsertFile, buildCrossReferenceMap } from './index/symbolIndex.js';
 import { filePathToNoteId } from './utils.js';
 import type { FileIndex } from './types.js';
+
+/**
+ * Maps a file extension to its Obsidian/code-fence language identifier.
+ */
+function getLanguageForExtension(ext: string): string {
+  switch (ext) {
+    case '.ts':    return 'typescript';
+    case '.tsx':   return 'tsx';
+    case '.py':    return 'python';
+    case '.cs':    return 'csharp';
+    case '.java':  return 'java';
+    case '.kt':
+    case '.kts':   return 'kotlin';
+    case '.cpp':
+    case '.cc':
+    case '.cxx':
+    case '.h':
+    case '.hpp':   return 'cpp';
+    case '.sh':
+    case '.bash':  return 'bash';
+    default:       return 'text';
+  }
+}
 
 async function main(): Promise<void> {
   // Parse command line arguments
@@ -61,7 +84,7 @@ async function main(): Promise<void> {
       return supportedExtensions.includes(ext);
     });
 
-  console.log(`Found ${files.length} TypeScript files to parse\n`);
+  console.log(`Found ${files.length} files to parse\n`);
 
   let filesProcessed = 0;
   let fileNotesWritten = 0;
@@ -87,7 +110,7 @@ async function main(): Promise<void> {
 
       // Determine language from extension
       const ext = extname(relativePath);
-      const language = ext === '.tsx' ? 'tsx' : 'typescript';
+      const language = getLanguageForExtension(ext);
 
       // Build FileIndex
       const fileIndex: FileIndex = {

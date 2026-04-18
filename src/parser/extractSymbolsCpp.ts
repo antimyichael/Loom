@@ -74,6 +74,11 @@ export function extractSymbolsCpp(sourceCode: string, filePath: string): CodeSym
     return Array.from(callees);
   };
 
+  /**
+   * Walks a declarator subtree iteratively and returns the innermost
+   * identifier or field_identifier node. This handles arbitrarily nested
+   * declarators such as pointer_declarator → function_declarator → identifier.
+   */
   const getInnermostIdentifier = (node: Parser.SyntaxNode): Parser.SyntaxNode | null => {
     let result: Parser.SyntaxNode | null = null;
     const stack: Parser.SyntaxNode[] = [node];
@@ -152,14 +157,16 @@ export function extractSymbolsCpp(sourceCode: string, filePath: string): CodeSym
       else if (node.type === 'declaration') {
         const hasFunctionDeclarator = node.descendantsOfType('function_declarator').length > 0;
         if (!hasFunctionDeclarator) {
-          let nameNode: Parser.SyntaxNode | null = null;
-          for (let i = 0; i < node.namedChildCount; i++) {
-            const child = node.namedChild(i);
-            if (child && child.type === 'identifier') {
-              nameNode = child;
-              break;
-            }
-          }
+          // In C++ ASTs, a declaration's variable name is typically nested inside
+          // an init_declarator node, not a direct identifier child. Using
+          // getInnermostIdentifier on the declarator field handles all cases:
+          //   int x;            → declarator: identifier
+          //   int x = 5;        → declarator: init_declarator → identifier
+          //   int* x;           → declarator: pointer_declarator → identifier
+          const declaratorNode = node.childForFieldName('declarator');
+          const nameNode = declaratorNode
+            ? getInnermostIdentifier(declaratorNode)
+            : null;
 
           if (nameNode) {
             symbols.push({
@@ -178,7 +185,7 @@ export function extractSymbolsCpp(sourceCode: string, filePath: string): CodeSym
         if (pathNode) {
           const importText = getText(pathNode)
             .replace(/^<|>$/g, '')
-            .replace(/^"|"$/g, '')
+            .replace(/^\"|\"$/g, '')
             .trim();
 
           if (importText) {

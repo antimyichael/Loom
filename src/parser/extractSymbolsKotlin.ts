@@ -76,6 +76,23 @@ export function extractSymbolsKotlin(sourceCode: string, filePath: string): Code
     return Array.from(callees);
   };
 
+  /**
+   * Returns true if the node is defined inside the body of a class or object declaration.
+   * In Kotlin's tree-sitter grammar, the structure is:
+   *   class_declaration → class_body → function_declaration
+   *   object_declaration → class_body → function_declaration
+   */
+  const isInsideClassOrObject = (node: Parser.SyntaxNode): boolean => {
+    // node → class_body → class_declaration | object_declaration
+    const parent = node.parent;
+    if (!parent) return false;
+    const grandparent = parent.parent;
+    return (
+      grandparent?.type === 'class_declaration' ||
+      grandparent?.type === 'object_declaration'
+    );
+  };
+
   const traverse = (): void => {
     const stack: Parser.SyntaxNode[] = [tree.rootNode];
 
@@ -117,9 +134,11 @@ export function extractSymbolsKotlin(sourceCode: string, filePath: string): Code
       else if (node.type === 'function_declaration') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
+          // Member functions inside a class or object body are methods.
+          const kind = isInsideClassOrObject(node) ? 'method' : 'function';
           symbols.push({
             name: getText(nameNode),
-            kind: 'function',
+            kind,
             filePath,
             line: getLineNumber(node),
             body: getText(node),

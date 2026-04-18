@@ -17,7 +17,7 @@ parser.setLanguage(Python);
  */
 export function extractSymbolsPython(sourceCode: string, filePath: string): CodeSymbol[] {
   const tree = parser.parse(sourceCode);
-  const symbols: CodeSymbol[] = [];
+  const symbols: CodeSymbol[] = [];;
   const visitedNodes = new Set<number>();
 
   // Helper to get line number from a node (1-indexed)
@@ -69,6 +69,18 @@ export function extractSymbolsPython(sourceCode: string, filePath: string): Code
     return Array.from(callees);
   };
 
+  /**
+   * Returns true if the node is a direct child of a class body
+   * (i.e. its grandparent is a class_definition).
+   */
+  const isInsideClass = (node: Parser.SyntaxNode): boolean => {
+    // node → block → class_definition
+    const parent = node.parent;
+    if (!parent) return false;
+    const grandparent = parent.parent;
+    return grandparent?.type === 'class_definition';
+  };
+
   const traverse = (): void => {
     const stack: Parser.SyntaxNode[] = [tree.rootNode];
 
@@ -96,9 +108,11 @@ export function extractSymbolsPython(sourceCode: string, filePath: string): Code
       else if (node.type === 'function_definition') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
+          // Functions defined directly inside a class body are methods.
+          const kind = isInsideClass(node) ? 'method' : 'function';
           symbols.push({
             name: getText(nameNode),
-            kind: 'function',
+            kind,
             filePath,
             line: getLineNumber(node),
             body: getText(node),
@@ -135,16 +149,20 @@ export function extractSymbolsPython(sourceCode: string, filePath: string): Code
         }
       }
       else if (node.type === 'assignment') {
-        const nameNode = node.namedChild(0);
-        if (nameNode && nameNode.type === 'identifier') {
-          symbols.push({
-            name: getText(nameNode),
-            kind: 'variable',
-            filePath,
-            line: getLineNumber(node),
-            references: [],
-            referencedBy: []
-          });
+        // Only capture module-level assignments (direct children of the module root),
+        // not locals inside functions, loops, or other blocks.
+        if (node.parent?.type === 'module') {
+          const nameNode = node.namedChild(0);
+          if (nameNode && nameNode.type === 'identifier') {
+            symbols.push({
+              name: getText(nameNode),
+              kind: 'variable',
+              filePath,
+              line: getLineNumber(node),
+              references: [],
+              referencedBy: []
+            });
+          }
         }
       }
 

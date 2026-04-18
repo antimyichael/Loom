@@ -138,19 +138,27 @@ export function extractSymbolsCSharp(sourceCode: string, filePath: string): Code
         }
       }
       else if (node.type === 'field_declaration') {
+        // In tree-sitter-c-sharp the hierarchy is:
+        //   field_declaration → variable_declaration → variable_declarator
+        // We must descend through variable_declaration first.
         for (let i = 0; i < node.namedChildCount; i++) {
-          const child = node.namedChild(i);
-          if (child && child.type === 'variable_declarator') {
-            const nameNode = child.childForFieldName('name');
-            if (nameNode) {
-              symbols.push({
-                name: getText(nameNode),
-                kind: 'variable',
-                filePath,
-                line: getLineNumber(child),
-                references: [],
-                referencedBy: []
-              });
+          const varDecl = node.namedChild(i);
+          if (varDecl && varDecl.type === 'variable_declaration') {
+            for (let j = 0; j < varDecl.namedChildCount; j++) {
+              const declarator = varDecl.namedChild(j);
+              if (declarator && declarator.type === 'variable_declarator') {
+                const nameNode = declarator.childForFieldName('name');
+                if (nameNode) {
+                  symbols.push({
+                    name: getText(nameNode),
+                    kind: 'variable',
+                    filePath,
+                    line: getLineNumber(declarator),
+                    references: [],
+                    referencedBy: []
+                  });
+                }
+              }
             }
           }
         }
