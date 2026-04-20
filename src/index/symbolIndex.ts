@@ -1,27 +1,31 @@
-/**
- * Manages the project-wide symbol index stored in symbol-index.json
- */
+// manages the project-wide symbol index stored in symbol-index.json
 
 import { readFile, writeFile } from 'node:fs/promises';
-import { join, dirname, resolve, normalize } from 'path';
+import { join, dirname, normalize } from 'path';
 import type { ProjectIndex, FileIndex } from '../types.js';
 
-/**
- * Cross-reference maps for tracking file relationships
- */
-export interface CrossReferenceMap {
-  // Maps a filePath to the list of filePaths that import it
-  importedBy: Map<string, string[]>;
-  // Maps a symbol name to the list of filePaths that call it
-  calledBy: Map<string, string[]>;
+export interface SymbolNoteRef {
+  noteId: string;
+  filePath: string;
 }
 
-/**
- * Loads the symbol index from disk
- * @param vaultPath - Path to the .obsidian-index vault root
- * @param projectRoot - Path to the project being indexed
- * @returns The loaded index, or a blank index if file doesn't exist
- */
+export interface CrossReferenceMap {
+  importedBy: Map<string, string[]>;
+  calledBy: Map<string, SymbolNoteRef[]>;
+  calleeNoteId: Map<string, string>;
+  referencedBy: Map<string, SymbolNoteRef[]>; 
+}
+
+function symbolNoteId(
+  symbolName: string,
+  symbolKind: string,
+  className: string | undefined
+): string {
+  return className && symbolKind === 'method'
+    ? `${className}.${symbolName}`
+    : symbolName;
+}
+
 export async function loadIndex(
   vaultPath: string,
   projectRoot: string
@@ -32,127 +36,125 @@ export async function loadIndex(
     const content = await readFile(indexPath, 'utf8');
     return JSON.parse(content) as ProjectIndex;
   } catch (error) {
-    // File doesn't exist - return blank index
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return {
-        projectRoot,
-        lastParsed: Date.now(),
-        files: []
-      };
+      return { projectRoot, lastParsed: Date.now(), files: [] };
     }
-    // Re-throw unexpected errors
     throw error;
   }
 }
 
-/**
- * Saves the symbol index to disk
- * @param vaultPath - Path to the .obsidian-index vault root
- * @param index - The index to save
- */
 export async function saveIndex(
   vaultPath: string,
   index: ProjectIndex
 ): Promise<void> {
   const indexPath = join(vaultPath, 'symbol-index.json');
-
-  // Update timestamp before writing
   index.lastParsed = Date.now();
-
-  // Pretty-print with 2-space indentation
-  const content = JSON.stringify(index, null, 2);
-  await writeFile(indexPath, content, 'utf8');
+  await writeFile(indexPath, JSON.stringify(index, null, 2), 'utf8');
 }
 
-/**
- * Updates or inserts a file entry in the index
- * Mutates the index object in place
- * @param index - The project index to modify
- * @param fileIndex - The file index to upsert
- */
 export function upsertFile(index: ProjectIndex, fileIndex: FileIndex): void {
   const existingIndex = index.files.findIndex(f => f.filePath === fileIndex.filePath);
-
   if (existingIndex !== -1) {
-    // Replace existing entry
     index.files[existingIndex] = fileIndex;
   } else {
-    // Append new entry
     index.files.push(fileIndex);
   }
 }
 
-/**
- * Removes a file entry from the index by its path
- * Mutates the index object in place. No-op if not found.
- * @param index - The project index to modify
- * @param filePath - The file path to remove
- */
 export function removeFile(index: ProjectIndex, filePath: string): void {
   const existingIndex = index.files.findIndex(f => f.filePath === filePath);
-
   if (existingIndex !== -1) {
     index.files.splice(existingIndex, 1);
   }
 }
 
-/**
- * Builds cross-reference maps from the project index
- * @param index - The project index to analyze
- * @returns Maps tracking which files import/call which symbols
- */
 export function buildCrossReferenceMap(index: ProjectIndex): CrossReferenceMap {
-  const importedBy = new Map<string, string[]>();
-  const calledBy = new Map<string, string[]>();
+  const importedBy    = new Map<string, string[]>();
+  const calledBy      = new Map<string, SymbolNoteRef[]>();
+  const calleeNoteId  = new Map<string, string>();
+  const referencedBy  = new Map<string, SymbolNoteRef[]>();
 
-  // Process each file in the index
   for (const file of index.files) {
-    // Process imports
+    const className = file.symbols.find(s => s.kind === 'class')?.name;
+
+    for (const symbol of file.symbols) {
+      if (
+        symbol.kind === 'function' ||
+        symbol.kind === 'method' ||
+        symbol.kind === 'class'
+      ) {
+        const noteId = symbolNoteId(symbol.name, symbol.kind, className);
+        if (!calleeNoteId.has(symbol.name)) {
+          calleeNoteId.set(symbol.name, noteId);
+        }
+      }
+    }
+  }
+
+  for (const file of index.files) {
+    const className = file.symbols.find(s => s.kind === 'class')?.name;
     const imports = file.symbols.filter(s => s.kind === 'import');
     for (const importSymbol of imports) {
       const importingDir = dirname(file.filePath);
       const resolvedImport = normalize(
-
         join(importingDir, importSymbol.name)
       ).replace(/\.(ts|tsx|js|jsx)$/, '');
 
       const matchedFile = index.files.find(f => {
-        const normalizedFilePath = normalize(f.filePath)
-          .replace(/\.(ts|tsx)$/, '');
+        const normalizedFilePath = normalize(f.filePath).replace(/\.(ts|tsx)$/, '');
         return normalizedFilePath === resolvedImport;
       });
 
       if (matchedFile) {
         const targetPath = matchedFile.filePath;
-        if (!importedBy.has(targetPath)) {
-          importedBy.set(targetPath, []);
-        }
-        const importers = importedBy.get(targetPath);
-        if (importers && !importers.includes(file.filePath)) {
-          importers.push(file.filePath);
-        }
+        if (!importedBy.has(targetPath)) importedBy.set(targetPath, []);
+        const importers = importedBy.get(targetPath)!;
+        if (!importers.includes(file.filePath)) importers.push(file.filePath);
       }
     }
 
-    // Process function and method calls
     const callableSymbols = file.symbols.filter(
       s => s.kind === 'function' || s.kind === 'method'
     );
 
     for (const symbol of callableSymbols) {
+      const callerNoteId = symbolNoteId(symbol.name, symbol.kind, className);
+      const callerRef: SymbolNoteRef = { noteId: callerNoteId, filePath: file.filePath };
+
       if (symbol.calls && symbol.calls.length > 0) {
-        for (const calledName of symbol.calls) {
-          if (!calledBy.has(calledName)) {
-            calledBy.set(calledName, []);
+        for (const calleeName of symbol.calls) {
+          if (!calledBy.has(calleeName)) calledBy.set(calleeName, []);
+          const callers = calledBy.get(calleeName)!;
+          if (!callers.some(r => r.noteId === callerNoteId)) {
+            callers.push(callerRef);
           }
-          const callers = calledBy.get(calledName);
-          if (callers && !callers.includes(file.filePath)) {
-            callers.push(file.filePath);
+        }
+      }
+
+      if (symbol.body) {
+        for (const otherFile of index.files) {
+          for (const otherSymbol of otherFile.symbols) {
+            if (otherSymbol.kind === 'variable') {
+              const pattern = new RegExp(`\\b${escapeRegExp(otherSymbol.name)}\\b`);
+              if (pattern.test(symbol.body)) {
+                if (!referencedBy.has(otherSymbol.name)) {
+                  referencedBy.set(otherSymbol.name, []);
+                }
+                const refs = referencedBy.get(otherSymbol.name)!;
+                if (!refs.some(r => r.noteId === callerNoteId)) {
+                  refs.push(callerRef);
+                }
+              }
+            }
           }
         }
       }
     }
   }
 
-  return { importedBy, calledBy };
+  return { importedBy, calledBy, calleeNoteId, referencedBy };
+}
+
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

@@ -1,6 +1,4 @@
-/**
- * Symbol extraction using tree-sitter for Bash/Shell files
- */
+// symbol extraction using tree-sitter for Bash/Shell files
 
 import Parser from 'tree-sitter';
 import Bash from 'tree-sitter-bash';
@@ -28,28 +26,19 @@ const BUILTIN_CALLS = new Set([
   '[[',
 ]);
 
-/**
- * Extracts all symbols from Bash source code using tree-sitter
- * @param sourceCode - The source code to parse
- * @param filePath - Relative path to the file being parsed
- * @returns Array of extracted symbols
- */
 export function extractSymbolsBash(sourceCode: string, filePath: string): CodeSymbol[] {
   const tree = parser.parse(sourceCode);
   const symbols: CodeSymbol[] = [];
   const visitedNodes = new Set<number>();
 
-  // Helper to get line number from a node (1-indexed)
   const getLineNumber = (node: Parser.SyntaxNode): number => {
     return node.startPosition.row + 1;
   };
 
-  // Helper to extract text for a node
   const getText = (node: Parser.SyntaxNode): string => {
     return sourceCode.slice(node.startIndex, node.endIndex);
   };
 
-  // Helper to extract all function calls from a node
   const extractCalls = (node: Parser.SyntaxNode): string[] => {
     const callees = new Set<string>();
     const callStack: Parser.SyntaxNode[] = [node];
@@ -104,9 +93,6 @@ export function extractSymbolsBash(sourceCode: string, filePath: string): CodeSy
         }
       }
       else if (node.type === 'variable_assignment') {
-        // Only capture script-level variable assignments (direct children of the
-        // program root). Locals inside function bodies are implementation details,
-        // not meaningful vault symbols.
         if (node.parent?.type === 'program') {
           const nameNode = node.childForFieldName('name');
           if (nameNode) {

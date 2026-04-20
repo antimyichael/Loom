@@ -1,6 +1,4 @@
-/**
- * Symbol extraction using tree-sitter for Kotlin files
- */
+// symbol extraction using tree-sitter for Kotlin files
 
 import Parser from 'tree-sitter';
 import Kotlin from 'tree-sitter-kotlin';
@@ -9,28 +7,19 @@ import type { CodeSymbol } from '../types.js';
 const parser = new Parser();
 parser.setLanguage(Kotlin);
 
-/**
- * Extracts all symbols from Kotlin source code using tree-sitter
- * @param sourceCode - The source code to parse
- * @param filePath - Relative path to the file being parsed
- * @returns Array of extracted symbols
- */
 export function extractSymbolsKotlin(sourceCode: string, filePath: string): CodeSymbol[] {
   const tree = parser.parse(sourceCode);
   const symbols: CodeSymbol[] = [];
   const visitedNodes = new Set<number>();
 
-  // Helper to get line number from a node (1-indexed)
   const getLineNumber = (node: Parser.SyntaxNode): number => {
     return node.startPosition.row + 1;
   };
 
-  // Helper to extract text for a node
   const getText = (node: Parser.SyntaxNode): string => {
     return sourceCode.slice(node.startIndex, node.endIndex);
   };
 
-  // Helper to extract all function/method calls from a node
   const extractCalls = (node: Parser.SyntaxNode): string[] => {
     const callees = new Set<string>();
     const callStack: Parser.SyntaxNode[] = [node];
@@ -76,14 +65,7 @@ export function extractSymbolsKotlin(sourceCode: string, filePath: string): Code
     return Array.from(callees);
   };
 
-  /**
-   * Returns true if the node is defined inside the body of a class or object declaration.
-   * In Kotlin's tree-sitter grammar, the structure is:
-   *   class_declaration → class_body → function_declaration
-   *   object_declaration → class_body → function_declaration
-   */
   const isInsideClassOrObject = (node: Parser.SyntaxNode): boolean => {
-    // node → class_body → class_declaration | object_declaration
     const parent = node.parent;
     if (!parent) return false;
     const grandparent = parent.parent;
@@ -134,7 +116,6 @@ export function extractSymbolsKotlin(sourceCode: string, filePath: string): Code
       else if (node.type === 'function_declaration') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
-          // Member functions inside a class or object body are methods.
           const kind = isInsideClassOrObject(node) ? 'method' : 'function';
           symbols.push({
             name: getText(nameNode),

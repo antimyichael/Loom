@@ -1,6 +1,4 @@
-/**
- * Symbol extraction using tree-sitter for C++ files
- */
+// symbol extraction using tree-sitter for C++ files
 
 import Parser from 'tree-sitter';
 import Cpp from 'tree-sitter-cpp';
@@ -9,28 +7,19 @@ import type { CodeSymbol } from '../types.js';
 const parser = new Parser();
 parser.setLanguage(Cpp);
 
-/**
- * Extracts all symbols from C++ source code using tree-sitter
- * @param sourceCode - The source code to parse
- * @param filePath - Relative path to the file being parsed
- * @returns Array of extracted symbols
- */
 export function extractSymbolsCpp(sourceCode: string, filePath: string): CodeSymbol[] {
   const tree = parser.parse(sourceCode);
   const symbols: CodeSymbol[] = [];
   const visitedNodes = new Set<number>();
 
-  // Helper to get line number from a node (1-indexed)
   const getLineNumber = (node: Parser.SyntaxNode): number => {
     return node.startPosition.row + 1;
   };
 
-  // Helper to extract text for a node
   const getText = (node: Parser.SyntaxNode): string => {
     return sourceCode.slice(node.startIndex, node.endIndex);
   };
 
-  // Helper to extract all function/method calls from a node
   const extractCalls = (node: Parser.SyntaxNode): string[] => {
     const callees = new Set<string>();
     const callStack: Parser.SyntaxNode[] = [node];
@@ -74,11 +63,6 @@ export function extractSymbolsCpp(sourceCode: string, filePath: string): CodeSym
     return Array.from(callees);
   };
 
-  /**
-   * Walks a declarator subtree iteratively and returns the innermost
-   * identifier or field_identifier node. This handles arbitrarily nested
-   * declarators such as pointer_declarator → function_declarator → identifier.
-   */
   const getInnermostIdentifier = (node: Parser.SyntaxNode): Parser.SyntaxNode | null => {
     let result: Parser.SyntaxNode | null = null;
     const stack: Parser.SyntaxNode[] = [node];
@@ -157,12 +141,6 @@ export function extractSymbolsCpp(sourceCode: string, filePath: string): CodeSym
       else if (node.type === 'declaration') {
         const hasFunctionDeclarator = node.descendantsOfType('function_declarator').length > 0;
         if (!hasFunctionDeclarator) {
-          // In C++ ASTs, a declaration's variable name is typically nested inside
-          // an init_declarator node, not a direct identifier child. Using
-          // getInnermostIdentifier on the declarator field handles all cases:
-          //   int x;            → declarator: identifier
-          //   int x = 5;        → declarator: init_declarator → identifier
-          //   int* x;           → declarator: pointer_declarator → identifier
           const declaratorNode = node.childForFieldName('declarator');
           const nameNode = declaratorNode
             ? getInnermostIdentifier(declaratorNode)

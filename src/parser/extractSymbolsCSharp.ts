@@ -1,6 +1,4 @@
-/**
- * Symbol extraction using tree-sitter for C# files
- */
+// symbol extraction using tree-sitter for C# files
 
 import Parser from 'tree-sitter';
 import CSharp from 'tree-sitter-c-sharp';
@@ -9,28 +7,20 @@ import type { CodeSymbol } from '../types.js';
 const parser = new Parser();
 parser.setLanguage(CSharp);
 
-/**
- * Extracts all symbols from C# source code using tree-sitter
- * @param sourceCode - The source code to parse
- * @param filePath - Relative path to the file being parsed
- * @returns Array of extracted symbols
- */
 export function extractSymbolsCSharp(sourceCode: string, filePath: string): CodeSymbol[] {
   const tree = parser.parse(sourceCode);
   const symbols: CodeSymbol[] = [];
   const visitedNodes = new Set<number>();
 
-  // Helper to get line number from a node (1-indexed)
   const getLineNumber = (node: Parser.SyntaxNode): number => {
     return node.startPosition.row + 1;
   };
 
-  // Helper to extract text for a node
   const getText = (node: Parser.SyntaxNode): string => {
     return sourceCode.slice(node.startIndex, node.endIndex);
   };
 
-  // Helper to extract all function calls from a node
+
   const extractCalls = (node: Parser.SyntaxNode): string[] => {
     const callees = new Set<string>();
     const callStack: Parser.SyntaxNode[] = [node];
@@ -138,9 +128,6 @@ export function extractSymbolsCSharp(sourceCode: string, filePath: string): Code
         }
       }
       else if (node.type === 'field_declaration') {
-        // In tree-sitter-c-sharp the hierarchy is:
-        //   field_declaration → variable_declaration → variable_declarator
-        // We must descend through variable_declaration first.
         for (let i = 0; i < node.namedChildCount; i++) {
           const varDecl = node.namedChild(i);
           if (varDecl && varDecl.type === 'variable_declaration') {

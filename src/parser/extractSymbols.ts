@@ -1,46 +1,32 @@
-/**
- * Symbol extraction using tree-sitter for TypeScript/TSX files
- */
+// symbol extraction using tree-sitter for TypeScript/TSX files
 
 import Parser from 'tree-sitter';
 import TypeScript from 'tree-sitter-typescript';
 import type { CodeSymbol, SymbolKind } from '../types.js';
 
-// Module-level parser instances
 const parser = new Parser();
 const tsLanguage = TypeScript.typescript;
 const tsxLanguage = TypeScript.tsx;
 
-/**
- * Extracts all symbols from TypeScript/TSX source code using tree-sitter
- * @param sourceCode - The source code to parse
- * @param filePath - Relative path to the file being parsed
- * @param language - 'typescript' or 'tsx'
- * @returns Array of extracted symbols
- */
 export function extractSymbols(
   sourceCode: string,
   filePath: string,
   language: 'typescript' | 'tsx'
 ): CodeSymbol[] {
-  // Set the appropriate language grammar
   parser.setLanguage(language === 'tsx' ? tsxLanguage : tsLanguage);
 
   const tree = parser.parse(sourceCode);
   const symbols: CodeSymbol[] = [];
   const visitedNodes = new Set<number>();
 
-  // Helper to get line number from a node (1-indexed)
   const getLineNumber = (node: Parser.SyntaxNode): number => {
     return node.startPosition.row + 1;
   };
 
-  // Helper to extract text for a node
   const getText = (node: Parser.SyntaxNode): string => {
     return sourceCode.slice(node.startIndex, node.endIndex);
   };
 
-  // Helper to extract all function/method calls from a node
   const extractCalls = (node: Parser.SyntaxNode): string[] => {
     const callees = new Set<string>();
 
@@ -88,7 +74,6 @@ export function extractSymbols(
       }
       visitedNodes.add(node.id);
 
-      // Extract class declarations
       if (node.type === 'class_declaration') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
@@ -104,7 +89,6 @@ export function extractSymbols(
         }
       }
 
-      // Extract function declarations
       else if (node.type === 'function_declaration') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
@@ -121,7 +105,6 @@ export function extractSymbols(
         }
       }
 
-      // Extract method definitions (inside classes)
       else if (node.type === 'method_definition') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
@@ -138,7 +121,6 @@ export function extractSymbols(
         }
       }
 
-      // Extract method signatures (in interfaces/types)
       else if (node.type === 'method_signature') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
@@ -155,7 +137,6 @@ export function extractSymbols(
         }
       }
 
-      // Extract abstract method signatures
       else if (node.type === 'abstract_method_signature') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
@@ -172,7 +153,6 @@ export function extractSymbols(
         }
       }
 
-      // Extract public field definitions (class properties)
       else if (node.type === 'public_field_definition') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
@@ -187,14 +167,11 @@ export function extractSymbols(
         }
       }
 
-      // Extract variable declarations (const, let, var)
       else if (node.type === 'variable_declarator') {
         const nameNode = node.childForFieldName('name');
         const valueNode = node.childForFieldName('value');
 
-        // Skip — lexical_declaration handler already captured this as a function
         if (valueNode?.type === 'arrow_function' || valueNode?.type === 'function_expression') {
-          // fall through to child traversal only
         } else if (nameNode) {
           if (nameNode.type === 'identifier') {
             symbols.push({
@@ -211,7 +188,6 @@ export function extractSymbols(
         }
       }
 
-      // Extract import statements
       else if (node.type === 'import_statement') {
         const sourceNode = node.childForFieldName('source');
         if (sourceNode) {
@@ -227,7 +203,6 @@ export function extractSymbols(
         }
       }
 
-      // Extract arrow function assignments (e.g., const myFunc = () => {})
       else if (node.type === 'lexical_declaration') {
         for (let i = 0; i < node.namedChildCount; i++) {
           const child = node.namedChild(i);
@@ -252,7 +227,6 @@ export function extractSymbols(
         }
       }
 
-      // Push children in reverse so processing order remains left-to-right
       for (let i = node.namedChildCount - 1; i >= 0; i--) {
         const child = node.namedChild(i);
         if (child) {
@@ -262,7 +236,6 @@ export function extractSymbols(
     }
   };
 
-  // Helper to extract variables from destructuring patterns
   const extractDestructuredVariables = (
     patternNode: Parser.SyntaxNode,
     declaratorNode: Parser.SyntaxNode,
@@ -292,8 +265,7 @@ export function extractSymbols(
     findIdentifiers(patternNode);
   };
 
-  // Start traversal from root
   traverse();
-
+  
   return symbols;
 }
