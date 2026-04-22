@@ -1,28 +1,49 @@
 {
-  "name": "loom",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "loom": "tsx src/cli.ts"
-  },
-  "keywords": [],
+  "name": "@loom-code/loom",
+  "version": "0.1.0",
+  "description": "Weave your codebase into a navigable Obsidian vault — one note per file, one note per symbol.",
   "author": "",
   "license": "ISC",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "main": "./dist/cli.js",
+  "bin": {
+    "loom": "./dist/cli.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "obsidian",
+    "codebase",
+    "ast",
+    "tree-sitter",
+    "documentation",
+    "graph",
+    "cli"
+  ],
   "dependencies": {
-    "tree-sitter": "^0.21.1",
-    "tree-sitter-bash": "^0.21.0",
-    "tree-sitter-c-sharp": "^0.23.1",
-    "tree-sitter-cpp": "^0.23.4",
-    "tree-sitter-java": "^0.23.5",
-    "tree-sitter-kotlin": "^0.3.8",
-    "tree-sitter-python": "^0.21.0",
-    "tree-sitter-typescript": "^0.23.2",
+    "tree-sitter": "0.21.1",
+    "tree-sitter-bash": "0.21.0",
+    "tree-sitter-c-sharp": "0.21.0",
+    "tree-sitter-cpp": "0.22.3",
+    "tree-sitter-java": "0.21.0",
+    "tree-sitter-kotlin": "0.3.8",
+    "tree-sitter-python": "0.21.0",
+    "tree-sitter-typescript": "0.21.2",
     "typescript": "^6.0.2"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
+    "@types/node": "^22.0.0",
     "tsx": "^4.21.0"
   }
 }

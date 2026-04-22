@@ -1,0 +1,32 @@
+# Source — consumers only need the compiled dist/
+src/
+
+# TypeScript config
+tsconfig.json
+
+# Dev tooling
+.eslintrc*
+.prettierrc*
+
+# Test output and fixtures
+test/
+tests/
+*.test.ts
+*.spec.ts
+
+# Vault output — never ship a user's generated vault
+.obsidian-index/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# npm internals
+node_modules/
+npm-debug.log*
