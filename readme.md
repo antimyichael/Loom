@@ -147,3 +147,10 @@ src/
 - **No recursion in AST traversal** — all traversal uses explicit iterative stacks to prevent stack overflow on large files
 - **`filePathToNoteId()` must be used everywhere** a file note filename is constructed
 - **Method notes use `ClassName.MethodName.md`** format to avoid name collisions
+
+---
+## LICENSE
+
+All Rights Reserved
+
+* DataThorn Technologies, @antimyichael, @giusiam
