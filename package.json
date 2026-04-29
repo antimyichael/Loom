@@ -1,6 +1,6 @@
 {
   "name": "@loom-code/loom",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Weave your codebase into a navigable Obsidian vault — one note per file, one note per symbol.",
   "author": "",
   "license": "ISC",
