@@ -16,6 +16,4 @@ package-lock.json
 Thumbs.db
 .vscode/
 .idea/
-
-# Other
-README_.md
+.claude/

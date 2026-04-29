@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------
+# Loom-managed exclusions (added automatically)
+# These are required for Loom to function correctly.
+# You may add patterns below, but do not remove these.
+# ---------------------------------------------------------------
+.git/
+.obsidian-index/
+node_modules/
+
+# ---------------------------------------------------------------
+# Contents seeded from your project's root .gitignore
+# (lines below were copied on first run — edit freely)
+# ---------------------------------------------------------------
+# Compiled output
+dist/
+
+# Generated vault — each developer's vault is local to their project
+.obsidian-index/
+
+# Dependencies
+node_modules/
+
+# npm
+npm-debug.log*
+package-lock.json
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/

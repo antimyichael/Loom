@@ -1,0 +1,6 @@
+{
+    "watch": {
+        "intervalMinutes": 2,
+        "debounceSeconds": 5
+    }
+}
