@@ -1,4 +1,5 @@
 use crate::index::cross_ref::SymbolNoteRef;
+use crate::roblox::RobloxAttachmentUsage;
 use crate::types::{CodeSymbol, FileIndex, ProjectIndex, SymbolKind};
 use crate::unity::hierarchy::UnityAttachmentUsage;
 use crate::utils::{file_path_to_note_id, symbol_note_id};
@@ -14,6 +15,7 @@ pub fn build_symbol_note(
     used_by_files: Option<&[String]>,
     referenced_by: Option<&[SymbolNoteRef]>,
     unity_attachments: Option<&[UnityAttachmentUsage]>,
+    roblox_attachments: Option<&[RobloxAttachmentUsage]>,
 ) -> String {
     let mut md = String::new();
 
@@ -107,6 +109,20 @@ pub fn build_symbol_note(
         }
     }
 
+    if let Some(attachments) = roblox_attachments {
+        if !attachments.is_empty() {
+            md.push_str("## Roblox Attachments\n");
+            for att in attachments {
+                let note_id = file_path_to_note_id(&att.model_path);
+                md.push_str(&format!(
+                    "- Embedded in **{}** inside [[{}]] (`{}`)\n",
+                    att.parent_instance_name, note_id, att.script_type
+                ));
+            }
+            md.push('\n');
+        }
+    }
+
     format!("{}\n", md.trim_end())
 }
 
@@ -114,6 +130,8 @@ pub fn build_note(
     file_index: &FileIndex,
     imported_by: Option<&[String]>,
     unity_attachments: Option<&[UnityAttachmentUsage]>,
+    roblox_datamodel_path: Option<&str>,
+    roblox_attachments: Option<&[RobloxAttachmentUsage]>,
 ) -> String {
     let file_path = &file_index.file_path;
     let language = &file_index.language;
@@ -156,6 +174,10 @@ pub fn build_note(
     md.push_str(&format!("last_parsed: {}\n", last_parsed_iso));
     md.push_str("---\n\n");
     md.push_str(&format!("# {}\n\n", filename));
+
+    if let Some(dm_path) = roblox_datamodel_path {
+        md.push_str(&format!("**Roblox DataModel:** `{}`\n\n", dm_path));
+    }
 
     if !classes.is_empty() {
         md.push_str("## Classes\n");
@@ -234,6 +256,20 @@ pub fn build_note(
                 md.push_str(&format!(
                     "- Attached to **{}** in [[{}]] (`{}`)\n",
                     att.game_object_name, note_id, att.asset_kind
+                ));
+            }
+            md.push('\n');
+        }
+    }
+
+    if let Some(attachments) = roblox_attachments {
+        if !attachments.is_empty() {
+            md.push_str("## Roblox Attachments\n");
+            for att in attachments {
+                let note_id = file_path_to_note_id(&att.model_path);
+                md.push_str(&format!(
+                    "- Embedded in **{}** inside [[{}]] (`{}`)\n",
+                    att.parent_instance_name, note_id, att.script_type
                 ));
             }
             md.push('\n');

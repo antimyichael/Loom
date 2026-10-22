@@ -4,6 +4,7 @@ pub mod config;
 pub mod ignore;
 pub mod index;
 pub mod parser;
+pub mod roblox;
 pub mod types;
 pub mod unity;
 pub mod utils;

@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('loomAPI', {
   stopLoom: () => ipcRenderer.invoke('stop-loom'),
   openVault: (vaultPath) => ipcRenderer.invoke('open-vault', vaultPath),
   checkUnityProject: (dirPath) => ipcRenderer.invoke('check-unity-project', dirPath),
+  checkRobloxProject: (dirPath) => ipcRenderer.invoke('check-roblox-project', dirPath),
   onLog: (callback) => {
     const handler = (_event, data) => callback(data);
     ipcRenderer.on('loom-log', handler);

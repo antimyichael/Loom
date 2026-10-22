@@ -6,6 +6,7 @@ pub mod csharp;
 pub mod go_lang;
 pub mod java;
 pub mod kotlin;
+pub mod luau;
 pub mod python;
 pub mod ruby_lang;
 pub mod rust_lang;
@@ -32,6 +33,7 @@ pub const SUPPORTED_EXTENSIONS: &[&str] = &[
     ".php",
     ".swift",
     ".scala", ".sc",
+    ".luau",
     ".lua",
     ".r", ".R",
     ".dart",
@@ -87,6 +89,8 @@ pub fn get_language_for_extension(ext: &str) -> &'static str {
         ".go" => "go",
         ".rb" => "ruby",
         ".sh" | ".bash" | ".zsh" => "bash",
+        ".luau" => "luau",
+        ".lua" => "lua",
         _ => {
             if let Some(pattern) = universal::get_universal_pattern(ext) {
                 pattern.language_name
@@ -120,6 +124,7 @@ pub fn parse_file(file_path: &str, contents: &str) -> Vec<CodeSymbol> {
         ".go" => go_lang::extract_symbols_go(contents, file_path),
         ".rb" => ruby_lang::extract_symbols_ruby(contents, file_path),
         ".sh" | ".bash" | ".zsh" => bash::extract_symbols_bash(contents, file_path),
+        ".luau" | ".lua" => luau::extract_symbols_luau(contents, file_path),
 
         _ => {
             if let Some(pattern) = universal::get_universal_pattern(&ext) {

@@ -29,7 +29,9 @@ pub fn write_obsidian_graph_config(vault_path: &Path) -> std::io::Result<()> {
             { "query": "tag:#overview", "color": { "a": 1, "rgb": 16738660 } },
             { "query": "tag:#unity/prefab", "color": { "a": 1, "rgb": 3402447 } },
             { "query": "tag:#unity/scene", "color": { "a": 1, "rgb": 16766720 } },
-            { "query": "tag:#unity", "color": { "a": 1, "rgb": 5885918 } }
+            { "query": "tag:#unity", "color": { "a": 1, "rgb": 5885918 } },
+            { "query": "tag:#roblox", "color": { "a": 1, "rgb": 41727 } },
+            { "query": "tag:#luau", "color": { "a": 1, "rgb": 401791 } }
         ],
         "collapse-display": false,
         "showArrow": true,

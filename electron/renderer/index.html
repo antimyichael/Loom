@@ -14,7 +14,7 @@
         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
       </svg>
       <span>Loom</span>
-      <span class="version-badge">v0.2.0</span>
+      <span class="version-badge">v0.2.1</span>
     </div>
   </div>
 
@@ -87,6 +87,17 @@
           <input type="checkbox" id="unityToggle" class="switch">
         </label>
 
+        <label class="toggle-card" id="robloxToggleCard">
+          <div class="toggle-info">
+            <div class="toggle-title-row">
+              <span class="toggle-title">Roblox / Luau Mode</span>
+              <span id="robloxDetectedBadge" class="badge badge-roblox hidden">Roblox Detected</span>
+            </div>
+            <span class="toggle-desc">Analyze Rojo DataModel mappings, .rbxmx models, Luau types & script attachments.</span>
+          </div>
+          <input type="checkbox" id="robloxToggle" class="switch">
+        </label>
+
         <label class="toggle-card">
           <div class="toggle-info">
             <span class="toggle-title">Watch Mode</span>
@@ -144,6 +155,10 @@
       <div id="unityStatCard" class="stat-card hidden">
         <span class="stat-label">Unity Assets</span>
         <span id="statUnityAssets" class="stat-value">0</span>
+      </div>
+      <div id="robloxStatCard" class="stat-card hidden">
+        <span class="stat-label">Roblox Models</span>
+        <span id="statRobloxModels" class="stat-value">0</span>
       </div>
     </section>
 

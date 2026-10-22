@@ -71,6 +71,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "antimyichael"
+version = "0.2.1"
+dependencies = [
+ "chrono",
+ "clap",
+ "colored",
+ "hex",
+ "ignore",
+ "lazy_static",
+ "notify",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "tree-sitter",
+ "tree-sitter-bash",
+ "tree-sitter-c",
+ "tree-sitter-c-sharp",
+ "tree-sitter-cpp",
+ "tree-sitter-go",
+ "tree-sitter-java",
+ "tree-sitter-kotlin",
+ "tree-sitter-python",
+ "tree-sitter-ruby",
+ "tree-sitter-rust",
+ "tree-sitter-typescript",
+ "walkdir",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -505,37 +536,6 @@ name = "log"
 version = "0.4.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
-
-[[package]]
-name = "loom-code"
-version = "0.2.0"
-dependencies = [
- "chrono",
- "clap",
- "colored",
- "hex",
- "ignore",
- "lazy_static",
- "notify",
- "regex",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "tree-sitter",
- "tree-sitter-bash",
- "tree-sitter-c",
- "tree-sitter-c-sharp",
- "tree-sitter-cpp",
- "tree-sitter-go",
- "tree-sitter-java",
- "tree-sitter-kotlin",
- "tree-sitter-python",
- "tree-sitter-ruby",
- "tree-sitter-rust",
- "tree-sitter-typescript",
- "walkdir",
-]
 
 [[package]]
 name = "memchr"

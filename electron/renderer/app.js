@@ -9,6 +9,8 @@ const browseVaultBtn = document.getElementById('browseVaultBtn');
 
 const unityToggle = document.getElementById('unityToggle');
 const unityDetectedBadge = document.getElementById('unityDetectedBadge');
+const robloxToggle = document.getElementById('robloxToggle');
+const robloxDetectedBadge = document.getElementById('robloxDetectedBadge');
 const watchToggle = document.getElementById('watchToggle');
 const verboseToggle = document.getElementById('verboseToggle');
 
@@ -23,6 +25,8 @@ const statFileNotes = document.getElementById('statFileNotes');
 const statSymbolNotes = document.getElementById('statSymbolNotes');
 const unityStatCard = document.getElementById('unityStatCard');
 const statUnityAssets = document.getElementById('statUnityAssets');
+const robloxStatCard = document.getElementById('robloxStatCard');
+const statRobloxModels = document.getElementById('statRobloxModels');
 
 const statusDot = document.getElementById('statusDot');
 const statusText = document.getElementById('statusText');
@@ -75,10 +79,22 @@ async function setProjectPath(dirPath) {
       setStatus('Unity project detected', 'idle');
     } else {
       unityDetectedBadge.classList.add('hidden');
-      setStatus('Ready to weave', 'idle');
     }
   } catch {
     unityDetectedBadge.classList.add('hidden');
+  }
+
+  try {
+    const isRoblox = await window.loomAPI.checkRobloxProject(dirPath);
+    if (isRoblox) {
+      robloxDetectedBadge.classList.remove('hidden');
+      robloxToggle.checked = true;
+      setStatus('Roblox project detected', 'idle');
+    } else {
+      robloxDetectedBadge.classList.add('hidden');
+    }
+  } catch {
+    robloxDetectedBadge.classList.add('hidden');
   }
 }
 
@@ -159,11 +175,18 @@ runBtn.addEventListener('click', async () => {
   statFileNotes.textContent = '0';
   statSymbolNotes.textContent = '0';
   statUnityAssets.textContent = '0';
+  statRobloxModels.textContent = '0';
 
   if (unityToggle.checked) {
     unityStatCard.classList.remove('hidden');
   } else {
     unityStatCard.classList.add('hidden');
+  }
+
+  if (robloxToggle.checked) {
+    robloxStatCard.classList.remove('hidden');
+  } else {
+    robloxStatCard.classList.add('hidden');
   }
 
   setStatus('Weaving vault...', 'active');
@@ -173,6 +196,7 @@ runBtn.addEventListener('click', async () => {
     outputPath: isCustomVaultPath ? vaultPathInput.value.trim() : '',
     name: vaultNameInput.value.trim() || 'LoomVault',
     unity: unityToggle.checked,
+    roblox: robloxToggle.checked,
     watch: watchToggle.checked,
     verbose: verboseToggle.checked,
   };
@@ -229,6 +253,12 @@ function appendLog(rawText) {
   if (unityAssetsMatch) {
     unityStatCard.classList.remove('hidden');
     statUnityAssets.textContent = unityAssetsMatch[1];
+  }
+
+  const robloxModelsMatch = clean.match(/Roblox model notes:\s+(\d+)/) || clean.match(/indexed (\d+) models/);
+  if (robloxModelsMatch) {
+    robloxStatCard.classList.remove('hidden');
+    statRobloxModels.textContent = robloxModelsMatch[1];
   }
 
   const textNode = document.createTextNode(clean);

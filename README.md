@@ -17,7 +17,7 @@ Loom features a **two-tier polyglot parsing engine** combining deep Tree-sitter 
 | **Enterprise & Mobile** | **C#** (`.cs`), **Java** (`.java`), **Kotlin** (`.kt`, `.kts`), **Swift** (`.swift`), **Scala** (`.scala`, `.sc`), **Apex** (`.cls`) |
 | **Functional** | **Haskell** (`.hs`), **Elixir** (`.ex`, `.exs`), **Erlang** (`.erl`, `.hrl`), **OCaml** (`.ml`, `.mli`), **F#** (`.fs`, `.fsi`), **Clojure** (`.clj`, `.cljs`), **Elm** (`.elm`), **Scheme / Racket** (`.scm`, `.rkt`) |
 | **Data & Scientific** | **SQL** (`.sql`), **R** (`.r`, `.R`), **Julia** (`.jl`), **Fortran** (`.f90`, `.f`, `.for`) |
-| **Game Dev & Shaders** | **GDScript / Godot** (`.gd`), **WGSL / GLSL / HLSL** (`.wgsl`, `.glsl`, `.hlsl`) |
+| **Game Dev & Shaders** | **Luau / Roblox** (`.luau`, `.server.luau`, `.client.luau`, `.lua`, `.server.lua`, `.client.lua`), **GDScript / Godot** (`.gd`), **WGSL / GLSL / HLSL** (`.wgsl`, `.glsl`, `.hlsl`) |
 | **Shell & Automation** | **Bash / Zsh / Shell** (`.sh`, `.bash`, `.zsh`), **PowerShell** (`.ps1`, `.psm1`) |
 | **Infrastructure & APIs**| **Solidity / Smart Contracts** (`.sol`), **Terraform / HCL** (`.tf`, `.hcl`), **Protocol Buffers** (`.proto`), **GraphQL** (`.graphql`, `.gql`), **Pascal / Delphi** (`.pas`), **Ada** (`.adb`) |
 
@@ -143,6 +143,20 @@ loom ~/unity-projects/MyGame --unity
 - **Hierarchy & Attachments**: Notes are generated for every Prefab and Scene detailing the full GameObject hierarchy, tags, parent-child trees, attached components, and attached C# scripts.
 - **Bi-directional Script Links**: Every C# script note displays a **Unity Attachments** section listing exactly which GameObjects in which prefabs or scenes attach that script.
 - **Obsidian Graph Integration**: Unity prefabs and scenes appear as dedicated color-coded nodes in Obsidian's graph view.
+
+### Roblox / Luau project mode
+
+Loom provides first-class support for **Roblox game projects** and **Luau** (via `--roblox` or `-r`, auto-detected if `default.project.json`, `*.project.json`, `wally.toml`, `.luau`, or `.rbxmx` are present):
+
+```bash
+loom ~/roblox-projects/MyGame --roblox
+```
+
+- **Luau Language Engine**: Parses gradual typing (`type` & `export type`), OOP tables (`setmetatable`), functions, typed methods (`Class:Method`), constants, and function calls.
+- **Rojo DataModel Resolution**: Reads `default.project.json` and automatically maps files to their in-game DataModel tree (e.g. `game.ReplicatedStorage.Common.Utils`, `game.ServerScriptService.Combat.Hitbox`, `game.StarterPlayer.StarterPlayerScripts.Camera`).
+- **Roblox Services & Requires**: Tracks `game:GetService(...)` calls (`Players`, `ReplicatedStorage`, `TweenService`) and instance-path requires (`require(ReplicatedStorage.Packages.Component)`).
+- **Roblox XML Models (`.rbxmx` & `.rbxlx`)**: Reconstructs instance hierarchies (`Model`, `Part`, `Folder`, `RemoteEvent`, `ScreenGui`) and maps attached `Script`, `LocalScript`, and `ModuleScript` instances with bi-directional Obsidian links.
+- **Graph View Integration**: Roblox models and Luau types receive dedicated color presets in Obsidian's graph view.
 
 ### Watch mode
 

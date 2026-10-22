@@ -1,6 +1,6 @@
 [package]
-name = "loom-code"
-version = "0.2.0"
+name = "antimyichael"
+version = "0.2.1"
 edition = "2021"
 authors = ["Loom Contributors"]
 description = "Weave your codebase into a navigable Obsidian vault."

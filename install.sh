@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-REPO="loom-code/loom"
+REPO="antimyichael/loom"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -29,7 +29,7 @@ echo "Detected platform: ${TARGET}"
 
 LATEST_TAG=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 if [ -z "$LATEST_TAG" ]; then
-  LATEST_TAG="v0.2.0"
+  LATEST_TAG="v0.2.1"
 fi
 
 URL="https://github.com/${REPO}/releases/download/${LATEST_TAG}/${TARGET}.tar.gz"

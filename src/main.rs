@@ -4,6 +4,7 @@ mod config;
 mod ignore;
 mod index;
 mod parser;
+mod roblox;
 mod types;
 mod unity;
 mod utils;
@@ -17,6 +18,7 @@ use ignore::load_loom_ignore;
 use index::cross_ref::build_cross_reference_map;
 use index::{load_index, save_index, upsert_file};
 use parser::{get_language_for_extension, is_supported_file, parse_file};
+use roblox::{build_roblox_model_note, is_roblox_project, scan_and_analyze_roblox};
 use std::fs;
 use std::path::{Path, PathBuf};
 use types::FileIndex;
@@ -48,6 +50,9 @@ struct Args {
 
     #[arg(short, long)]
     unity: bool,
+
+    #[arg(short, long)]
+    roblox: bool,
 
     #[arg(short, long)]
     verbose: bool,
@@ -85,6 +90,7 @@ fn run_once(
     vault_path: &Path,
     vault_dir_name: Option<&str>,
     unity_flag: bool,
+    roblox_flag: bool,
     verbose: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", "=".repeat(60).dimmed());
@@ -94,6 +100,11 @@ fn run_once(
     let unity_mode = unity_flag || is_unity_project(project_root);
     if unity_mode {
         println!("{}      {}", "Unity Mode:".bold().yellow(), "ENABLED".green().bold());
+    }
+
+    let roblox_mode = roblox_flag || is_roblox_project(project_root);
+    if roblox_mode {
+        println!("{}     {}", "Roblox Mode:".bold().cyan(), "ENABLED".green().bold());
     }
     println!("{}", "=".repeat(60).dimmed());
 
@@ -106,6 +117,21 @@ fn run_once(
             "{} Indexed {} Unity assets with {} script attachment links.\n",
             "✓".green(),
             analysis.assets.len().to_string().cyan().bold(),
+            analysis.script_attachments.len().to_string().cyan().bold()
+        );
+        Some(analysis)
+    } else {
+        None
+    };
+
+    let roblox_analysis = if roblox_mode {
+        println!("\n{} Scanning Roblox project, Rojo mappings, and .rbxmx models...", "[roblox]".cyan().bold());
+        let analysis = scan_and_analyze_roblox(project_root);
+        println!(
+            "{} Mapped {} files to DataModel and indexed {} models with {} script attachments.\n",
+            "✓".green(),
+            analysis.file_to_datamodel.len().to_string().cyan().bold(),
+            analysis.models.len().to_string().cyan().bold(),
             analysis.script_attachments.len().to_string().cyan().bold()
         );
         Some(analysis)
@@ -126,6 +152,8 @@ fn run_once(
     let mut symbol_notes_skipped = 0;
     let mut unity_notes_written = 0;
     let mut unity_notes_skipped = 0;
+    let mut roblox_notes_written = 0;
+    let mut roblox_notes_skipped = 0;
 
     println!("{}", "=== Pass 1: Parsing source files ===".bold());
 
@@ -194,7 +222,23 @@ fn run_once(
             .and_then(|ua| ua.script_attachments.get(relative_path))
             .map(|v| v.as_slice());
 
-        let note_content = build_note(file_index, imported_by, unity_file_attachments);
+        let roblox_dm = roblox_analysis
+            .as_ref()
+            .and_then(|ra| ra.file_to_datamodel.get(relative_path))
+            .map(|s| s.as_str());
+
+        let roblox_file_attachments = roblox_analysis
+            .as_ref()
+            .and_then(|ra| ra.script_attachments.get(relative_path))
+            .map(|v| v.as_slice());
+
+        let note_content = build_note(
+            file_index,
+            imported_by,
+            unity_file_attachments,
+            roblox_dm,
+            roblox_file_attachments,
+        );
         let note_filename = format!("{}.md", file_path_to_note_id(relative_path));
         let note_path = vault_path.join("notes").join(note_filename);
 
@@ -237,6 +281,11 @@ fn run_once(
                 .and_then(|ua| ua.script_attachments.get(&symbol.name))
                 .map(|v| v.as_slice());
 
+            let roblox_symbol_attachments = roblox_analysis
+                .as_ref()
+                .and_then(|ra| ra.script_attachments.get(&symbol.name))
+                .map(|v| v.as_slice());
+
             let symbol_note_content = build_symbol_note(
                 symbol,
                 &file_index.language,
@@ -245,6 +294,7 @@ fn run_once(
                 used_by_files,
                 referenced_by,
                 unity_symbol_attachments,
+                roblox_symbol_attachments,
             );
 
             let symbol_filename = format!("{}.md", note_id);
@@ -293,6 +343,29 @@ fn run_once(
         }
     }
 
+    if let Some(ref ra) = roblox_analysis {
+        for model in &ra.models {
+            let note_content = build_roblox_model_note(model);
+            let note_filename = format!("{}.md", file_path_to_note_id(&model.file_path));
+            let note_path = vault_path.join("notes").join(note_filename);
+
+            match write_note_if_changed(&note_path, &note_content) {
+                Ok(true) => {
+                    roblox_notes_written += 1;
+                    if verbose {
+                        println!("  [roblox] Wrote model note: {}", model.file_path);
+                    }
+                }
+                Ok(false) => {
+                    roblox_notes_skipped += 1;
+                }
+                Err(e) => {
+                    eprintln!("{} Error writing Roblox model note {}: {e}", "✗".red(), model.file_path);
+                }
+            }
+        }
+    }
+
     let index_note_content = build_index_note(&index);
     let index_note_path = vault_path.join("notes").join("_Overview.md");
     let _ = write_note_if_changed(&index_note_path, &index_note_content);
@@ -310,6 +383,11 @@ fn run_once(
         println!("  Unity asset notes:      {}", (unity_notes_written + unity_notes_skipped).to_string().yellow());
         println!("    Written:              {}", unity_notes_written.to_string().green());
         println!("    Skipped:              {}", unity_notes_skipped.to_string().dimmed());
+    }
+    if roblox_mode {
+        println!("  Roblox model notes:     {}", (roblox_notes_written + roblox_notes_skipped).to_string().cyan());
+        println!("    Written:              {}", roblox_notes_written.to_string().green());
+        println!("    Skipped:              {}", roblox_notes_skipped.to_string().dimmed());
     }
     println!("{}", "=".repeat(60).dimmed());
 
@@ -333,17 +411,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if args.watch {
         println!("{} Starting watch mode...", "[loom]".bold().cyan());
 
-        run_once(&project_root, &vault_path, Some(&vault_dir_name), args.unity, args.verbose)?;
+        run_once(&project_root, &vault_path, Some(&vault_dir_name), args.unity, args.roblox, args.verbose)?;
 
         let loom_ignore = load_loom_ignore(&project_root, Some(&vault_dir_name));
         start_watcher(
             &project_root,
             &config.watch,
             &loom_ignore,
-            |_trigger| run_once(&project_root, &vault_path, Some(&vault_dir_name), args.unity, args.verbose),
+            |_trigger| run_once(&project_root, &vault_path, Some(&vault_dir_name), args.unity, args.roblox, args.verbose),
         );
     } else {
-        run_once(&project_root, &vault_path, Some(&vault_dir_name), args.unity, args.verbose)?;
+        run_once(&project_root, &vault_path, Some(&vault_dir_name), args.unity, args.roblox, args.verbose)?;
     }
 
     Ok(())

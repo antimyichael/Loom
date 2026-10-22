@@ -1,6 +1,6 @@
 {
-  "name": "@loom-code/loom",
-  "version": "0.2.0",
+  "name": "antimyichael/loom",
+  "version": "0.2.1",
   "description": "Weave your codebase into a navigable Obsidian vault.",
   "author": "",
   "license": "ISC",

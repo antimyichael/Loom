@@ -84,7 +84,7 @@ export class HashService {
     for file_index in &index.files {
         let rel_path = &file_index.file_path;
         let imported_by = cross_refs.imported_by.get(rel_path).map(|v| v.as_slice());
-        let note_content = build_note(file_index, imported_by, None);
+        let note_content = build_note(file_index, imported_by, None, None, None);
         let note_path = vault_path
             .join("notes")
             .join(format!("{}.md", file_path_to_note_id(rel_path)));
@@ -105,6 +105,7 @@ export class HashService {
                 Some(&cross_refs.callee_note_id),
                 used_by_files,
                 referenced_by,
+                None,
                 None,
             );
             let sym_path = vault_path
@@ -130,7 +131,7 @@ export class HashService {
     for file_index in &index.files {
         let rel_path = &file_index.file_path;
         let imported_by = cross_refs.imported_by.get(rel_path).map(|v| v.as_slice());
-        let note_content = build_note(file_index, imported_by, None);
+        let note_content = build_note(file_index, imported_by, None, None, None);
         let note_path = vault_path
             .join("notes")
             .join(format!("{}.md", file_path_to_note_id(rel_path)));

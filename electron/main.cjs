@@ -111,12 +111,26 @@ ipcMain.handle('check-unity-project', async (_event, dirPath) => {
   }
 });
 
+ipcMain.handle('check-roblox-project', async (_event, dirPath) => {
+  if (!dirPath || typeof dirPath !== 'string') return false;
+  try {
+    const defaultProject = path.join(dirPath, 'default.project.json');
+    const wallyToml = path.join(dirPath, 'wally.toml');
+    if (fs.existsSync(defaultProject) || fs.existsSync(wallyToml)) return true;
+
+    const entries = fs.readdirSync(dirPath);
+    return entries.some(file => file.endsWith('.project.json') || file.endsWith('.luau') || file.endsWith('.rbxmx') || file.endsWith('.rbxlx'));
+  } catch {
+    return false;
+  }
+});
+
 ipcMain.handle('run-loom', async (_event, options) => {
   if (activeLoomProcess) {
     return { success: false, error: 'A Loom indexing run is already in progress.' };
   }
 
-  const { projectPath, outputPath, name, unity, watch, verbose } = options;
+  const { projectPath, outputPath, name, unity, roblox, watch, verbose } = options;
 
   if (!projectPath) {
     return { success: false, error: 'Please choose a project directory.' };
@@ -133,6 +147,10 @@ ipcMain.handle('run-loom', async (_event, options) => {
 
   if (unity) {
     args.push('--unity');
+  }
+
+  if (roblox) {
+    args.push('--roblox');
   }
 
   if (watch) {
