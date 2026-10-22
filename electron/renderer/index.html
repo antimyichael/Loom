@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loom — Codebase to Obsidian Vault</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="window-titlebar">
+    <div class="titlebar-drag"></div>
+    <div class="app-brand">
+      <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <span>Loom</span>
+      <span class="version-badge">v0.2.0</span>
+    </div>
+  </div>
+
+  <main class="app-container">
+
+    <header class="app-header">
+      <div class="header-text">
+        <h1>Weave your codebase into Obsidian</h1>
+        <p>Parse any programming project or Unity repository into an interlinked knowledge vault with one click.</p>
+      </div>
+    </header>
+
+    <section class="card config-card">
+
+      <div class="form-group">
+        <label for="projectPathInput">Project Repository</label>
+        <div class="input-with-action">
+          <input type="text" id="projectPathInput" placeholder="Select or drop your codebase folder here..." readonly>
+          <button id="browseProjectBtn" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            Browse
+          </button>
+        </div>
+        <div id="dropZone" class="drop-zone">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+          <span>Drag and drop a codebase folder here</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="label-row">
+          <label for="vaultNameInput">Vault Folder Name</label>
+          <span class="sub-label">Clean & visible folder name (not hidden)</span>
+        </div>
+        <input type="text" id="vaultNameInput" value="LoomVault" placeholder="e.g. LoomVault, CodebaseDocs">
+      </div>
+
+      <div class="form-group">
+        <div class="label-row">
+          <label for="vaultPathInput">Obsidian Vault Location</label>
+          <span class="sub-label">Default: <code>&lt;project&gt;/<span id="vaultPathDisplay">LoomVault</span></code></span>
+        </div>
+        <div class="input-with-action">
+          <input type="text" id="vaultPathInput" placeholder="Auto-configured to &lt;project&gt;/LoomVault">
+          <button id="browseVaultBtn" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            Custom...
+          </button>
+        </div>
+        <div class="helper-text">
+          Visible folder so you can easily browse and select it inside Obsidian without needing to view hidden files.
+        </div>
+      </div>
+
+      <div class="toggles-grid">
+        <label class="toggle-card" id="unityToggleCard">
+          <div class="toggle-info">
+            <div class="toggle-title-row">
+              <span class="toggle-title">Unity Project Mode</span>
+              <span id="unityDetectedBadge" class="badge badge-unity hidden">Unity Detected</span>
+            </div>
+            <span class="toggle-desc">Analyze .meta GUIDs, prefabs, scenes, GameObject hierarchies & script attachments.</span>
+          </div>
+          <input type="checkbox" id="unityToggle" class="switch">
+        </label>
+
+        <label class="toggle-card">
+          <div class="toggle-info">
+            <span class="toggle-title">Watch Mode</span>
+            <span class="toggle-desc">Continuously update the Obsidian vault in the background as you edit code.</span>
+          </div>
+          <input type="checkbox" id="watchToggle" class="switch">
+        </label>
+
+        <label class="toggle-card">
+          <div class="toggle-info">
+            <span class="toggle-title">Verbose Logging</span>
+            <span class="toggle-desc">Print detailed individual file notes and symbol entries in real-time.</span>
+          </div>
+          <input type="checkbox" id="verboseToggle" class="switch">
+        </label>
+      </div>
+
+      <div class="actions-row">
+        <button id="runBtn" class="btn btn-primary" disabled>
+          <svg class="run-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <span id="runBtnText">Weave Vault</span>
+        </button>
+
+        <button id="stopBtn" class="btn btn-danger hidden">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="6" y="6" width="12" height="12"/>
+          </svg>
+          Stop Watcher
+        </button>
+
+        <button id="openVaultBtn" class="btn btn-obsidian hidden">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+          </svg>
+          Open in Obsidian
+        </button>
+      </div>
+    </section>
+
+    <section id="statsSection" class="stats-grid hidden">
+      <div class="stat-card">
+        <span class="stat-label">Source Files</span>
+        <span id="statFiles" class="stat-value">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">File Notes</span>
+        <span id="statFileNotes" class="stat-value">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Symbol Notes</span>
+        <span id="statSymbolNotes" class="stat-value">0</span>
+      </div>
+      <div id="unityStatCard" class="stat-card hidden">
+        <span class="stat-label">Unity Assets</span>
+        <span id="statUnityAssets" class="stat-value">0</span>
+      </div>
+    </section>
+
+    <section class="card console-card">
+      <div class="console-header">
+        <div class="status-indicator-row">
+          <span id="statusDot" class="status-dot"></span>
+          <span id="statusText" class="status-text">Ready to weave</span>
+        </div>
+        <div class="console-actions">
+          <button id="clearLogsBtn" class="btn-link">Clear</button>
+        </div>
+      </div>
+      <div id="consoleOutput" class="console-output">
+        <div class="console-placeholder">Select a project folder above and click "Weave Vault" to begin.</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

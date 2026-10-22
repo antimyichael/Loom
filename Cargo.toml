@@ -1,0 +1,53 @@
+[package]
+name = "loom-code"
+version = "0.2.0"
+edition = "2021"
+authors = ["Loom Contributors"]
+description = "Weave your codebase into a navigable Obsidian vault."
+license = "ISC"
+readme = "README.md"
+keywords = ["obsidian", "codebase", "ast", "tree-sitter", "documentation"]
+
+[lib]
+name = "loom_code"
+path = "src/lib.rs"
+
+[[bin]]
+name = "loom"
+path = "src/main.rs"
+
+[dependencies]
+tree-sitter = "0.22"
+tree-sitter-typescript = "0.21"
+tree-sitter-python = "0.21"
+tree-sitter-c-sharp = "0.21"
+tree-sitter-java = "0.21"
+tree-sitter-cpp = "0.22"
+tree-sitter-c = "0.21"
+tree-sitter-rust = "0.21"
+tree-sitter-go = "0.21"
+tree-sitter-ruby = "0.21"
+tree-sitter-bash = "0.21"
+tree-sitter-kotlin = "0.3.8"
+
+clap = { version = "4.5", features = ["derive"] }
+ignore = "0.4"
+walkdir = "2.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+hex = "0.4"
+notify = "6.1"
+chrono = { version = "0.4", features = ["serde"] }
+colored = "2.1"
+regex = "1.10"
+lazy_static = "1.5"
+
+[dev-dependencies]
+tempfile = "3.10"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

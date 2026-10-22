@@ -2,52 +2,96 @@
 
 > Weave your codebase into a navigable Obsidian vault.
 
-Loom is a CLI tool that parses a programming project using Tree-sitter ASTs and generates an [Obsidian](https://obsidian.md) vault of interlinked Markdown notes. Every file, class, method, function, and variable becomes its own note, with `[[wikilinks]]` connecting everything together. The result is a fully navigable dependency graph of your entire codebase inside Obsidian's graph view.
+Loom is a fast CLI tool that parses codebases using Tree-sitter ASTs and generates an [Obsidian](https://obsidian.md) vault of interlinked Markdown notes. Every file, class, method, function, and variable becomes its own note, with `[[wikilinks]]` connecting everything together. The result is a fully navigable dependency graph of your entire codebase inside Obsidian's graph view.
 
 ---
 
-## Supported Languages
+## Supported Languages (50+ Languages)
 
-| Language | Extensions |
+Loom features a **two-tier polyglot parsing engine** combining deep Tree-sitter AST parsers for major languages with a high-performance universal grammar engine for 35+ specialized and domain languages.
+
+| Category | Languages & Extensions |
 |---|---|
-| TypeScript / TSX | `.ts` `.tsx` |
-| Python | `.py` |
-| C# | `.cs` |
-| Java | `.java` |
-| Kotlin | `.kt` `.kts` |
-| C++ | `.cpp` `.cc` `.cxx` `.h` `.hpp` |
-| Bash / Shell | `.sh` `.bash` |
+| **Web & Scripting** | **TypeScript / TSX** (`.ts`, `.tsx`), **JavaScript / JSX** (`.js`, `.jsx`, `.mjs`, `.cjs`), **Python** (`.py`, `.pyw`), **PHP** (`.php`), **Ruby** (`.rb`), **Lua** (`.lua`), **Perl** (`.pl`, `.pm`), **Groovy** (`.groovy`), **Dart** (`.dart`) |
+| **Systems & Native** | **Rust** (`.rs`), **Go** (`.go`), **C++** (`.cpp`, `.cc`, `.cxx`, `.hpp`), **C** (`.c`, `.h`), **Zig** (`.zig`), **Nim** (`.nim`), **D** (`.d`), **V / Vlang** (`.v`), **Crystal** (`.cr`) |
+| **Enterprise & Mobile** | **C#** (`.cs`), **Java** (`.java`), **Kotlin** (`.kt`, `.kts`), **Swift** (`.swift`), **Scala** (`.scala`, `.sc`), **Apex** (`.cls`) |
+| **Functional** | **Haskell** (`.hs`), **Elixir** (`.ex`, `.exs`), **Erlang** (`.erl`, `.hrl`), **OCaml** (`.ml`, `.mli`), **F#** (`.fs`, `.fsi`), **Clojure** (`.clj`, `.cljs`), **Elm** (`.elm`), **Scheme / Racket** (`.scm`, `.rkt`) |
+| **Data & Scientific** | **SQL** (`.sql`), **R** (`.r`, `.R`), **Julia** (`.jl`), **Fortran** (`.f90`, `.f`, `.for`) |
+| **Game Dev & Shaders** | **GDScript / Godot** (`.gd`), **WGSL / GLSL / HLSL** (`.wgsl`, `.glsl`, `.hlsl`) |
+| **Shell & Automation** | **Bash / Zsh / Shell** (`.sh`, `.bash`, `.zsh`), **PowerShell** (`.ps1`, `.psm1`) |
+| **Infrastructure & APIs**| **Solidity / Smart Contracts** (`.sol`), **Terraform / HCL** (`.tf`, `.hcl`), **Protocol Buffers** (`.proto`), **GraphQL** (`.graphql`, `.gql`), **Pascal / Delphi** (`.pas`), **Ada** (`.adb`) |
 
 ---
 
-## Requirements
+## Desktop Application (macOS, Windows, Linux)
 
-**Node.js 22 LTS is required.** Tree-sitter's native addons do not compile correctly on other versions. Node 25+ breaks native compilation; Node 19 causes ABI mismatches.
+Loom is packaged as a standalone native desktop application with full graphical UI — **no terminal, Node.js, or npm required**:
 
-Install and manage Node versions with [nvm](https://github.com/nvm-sh/nvm) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows):
+| Platform | Installer Package | Format |
+|---|---|---|
+| **macOS** | `Loom-0.2.0-arm64.dmg` (Apple Silicon)<br>`Loom-0.2.0-x64.dmg` (Intel) | Native Apple Disk Image (`.dmg`) & `.zip` |
+| **Windows** | `Loom-Setup-0.2.0.exe` | Standard Windows NSIS Installer & Portable `.exe` |
+| **Linux** | `Loom-0.2.0.AppImage`<br>`loom_0.2.0_amd64.deb` | Universal AppImage & Debian/Ubuntu Package |
+
+You can download the latest native installers directly from [GitHub Releases](https://github.com/loom-code/loom/releases).
+
+### Desktop App Features
+- **Zero Configuration**: Double-click to launch like any native app. The Rust parsing engine is bundled inside.
+- **Drag & Drop Folder Selection**: Drag any codebase folder directly into the window or use the native OS file picker.
+- **Custom Vault Naming**: Choose any folder name for your Obsidian vault (defaults to visible `LoomVault`).
+- **Automatic Unity Detection**: Badges and configures Unity mode when a Unity repository (containing `Assets/`) is loaded.
+- **Interactive Toggles**: One-click switches for **Unity Mode**, **Watch Mode**, and **Verbose Logging**.
+- **Real-Time Terminal Console**: Streams live parser output and updates summary statistics in real time.
+- **One-Click "Open in Obsidian"**: Automatically launches Obsidian with the newly woven vault once indexing finishes.
+
+### Building Native Installers Locally
+
+You can also build native installers directly on your machine:
 
 ```bash
-nvm install 22
-nvm use 22
+# Build macOS .dmg & .app
+npm run dist:mac
+
+# Build Windows .exe installer
+npm run dist:win
+
+# Build Linux .AppImage & .deb
+npm run dist:linux
 ```
 
 ---
 
 ## Installation
 
-### Global (recommended)
+Loom is built in Rust as a self-contained, high-performance static binary with **zero external dependencies** — no Python, no Node.js, and no C++ compiler toolchains required on the user's machine.
+
+### 1. One-Line Shell Installer (macOS & Linux)
 
 ```bash
-npm install -g @loom-code/loom --legacy-peer-deps
+curl -fsSL https://raw.githubusercontent.com/loom-code/loom/main/install.sh | sh
 ```
 
-### Local (per-project)
+### 2. NPM / NPX (Zero Compilation)
+
+If you already use Node or NPM, Loom is available with precompiled binaries:
 
 ```bash
-npm install --save-dev @loom-code/loom --legacy-peer-deps
+# Run directly without installing
+npx @loom-code/loom .
+
+# Or install globally
+npm install -g @loom-code/loom
 ```
 
-> **Note:** `--legacy-peer-deps` is required. Tree-sitter grammar packages have peer dependency constraints that conflict without it.
+### 3. Cargo (From Source)
+
+```bash
+cargo install --path .
+```
+
+### 4. Direct Binary Download
+
+Prebuilt standalone binaries for **macOS (Apple Silicon & Intel)**, **Linux (x86_64 & aarch64)**, and **Windows (x86_64)** are available on the [GitHub Releases](https://github.com/loom-code/loom/releases) page.
 
 ---
 
@@ -61,56 +105,101 @@ Parse a project and generate the vault once:
 loom /path/to/your/project
 
 # Examples
-loom ~/projects/my-typescript-app
+loom ~/projects/my-app
 loom ~/unity-projects/MyGame/Assets
 loom .
 ```
 
+### Vault folder name & location
+
+By default, Loom creates a clean, visible vault folder named **`LoomVault`** directly in the project root (`{projectPath}/LoomVault/`). This ensures users can easily view and select the vault in Obsidian without having to unhide dotfiles (`.obsidian-index`).
+
+You can customize the vault name or path in three ways:
+
+1. **Change the folder name** (within project root):
+   ```bash
+   loom . -n MyProjectDocs
+   # or
+   loom . --name CodebaseVault
+   ```
+2. **Specify a full custom output path**:
+   ```bash
+   loom . -o ~/Documents/ObsidianVaults/MyProject
+   # or
+   loom . --output /path/to/any/folder
+   ```
+3. **Configure in `loom.config.json` or Environment**:
+   Set `"vault": { "name": "MyVault" }` in `loom.config.json` or export `LOOM_VAULT_NAME="MyVault"`.
+
+
+### Unity project mode
+
+Loom has built-in support for **Unity game projects** (via `--unity` or `-u`, auto-detected if `Assets/` is present). It scans `.meta` files and parses YAML hierarchies in `.prefab`, `.unity` (scene), and `.asset` (ScriptableObject) files:
+
+```bash
+loom ~/unity-projects/MyGame --unity
+```
+
+- **Hierarchy & Attachments**: Notes are generated for every Prefab and Scene detailing the full GameObject hierarchy, tags, parent-child trees, attached components, and attached C# scripts.
+- **Bi-directional Script Links**: Every C# script note displays a **Unity Attachments** section listing exactly which GameObjects in which prefabs or scenes attach that script.
+- **Obsidian Graph Integration**: Unity prefabs and scenes appear as dedicated color-coded nodes in Obsidian's graph view.
+
 ### Watch mode
 
-Keep the vault continuously updated as you edit files:
+Keep the vault continuously updated as you edit code:
 
 ```bash
 loom /path/to/your/project --watch
 ```
 
-In watch mode, Loom runs immediately on start and then re-runs whenever a supported source file changes. Two layers of triggering are used: a debounce timer that fires after a quiet period following the last change, and a guaranteed interval that fires regardless of file-system events (a safety net for network drives or editors that don't emit standard events). At most one run is queued at a time — concurrent runs are never started.
-
-Watch behaviour is configurable via `loom.config.json` in the project root (see [Configuration](#configuration)).
+In watch mode, Loom runs an initial pass and then monitors the project tree for file modifications. Changes trigger an incremental update after a configurable debounce period (default: 5s), backed by a safety-net interval timer.
 
 ---
 
-Loom creates a vault at `{projectPath}/.obsidian-index/`. Open that folder in Obsidian to explore your codebase as a graph. Add `.obsidian-index/` to your project's `.gitignore` — vaults are local to each developer.
+## Features & Vault Design
+
+- **Obsidian Graph View Styling**: Loom automatically configures `.obsidian/graph.json` with color presets so that classes (blue), functions (green), methods (purple), variables (orange), and overviews are clearly distinguished in Obsidian's graph view.
+- **Clean Symbol Scoping**:
+  - Methods are namespaced to their parent class (e.g. `[[ClassName.methodName]]`), preventing collisions across files.
+  - Temporary loop indices and local function variables (like `i`, `stack`, `child`) are filtered out so they do not pollute the global graph.
+- **Cross-Referencing**:
+  - **Calls / Called by**: Direct call graph navigation.
+  - **Imports / Imported by**: File-level dependency mapping.
+  - **Referenced by**: Cross-file variable and constant usage tracking.
+- **Incremental Hash-Based Diffing**: Only files and notes whose contents have actually changed (via SHA-256) are rewritten to disk, keeping Obsidian fast and preserving file metadata.
+- **Codebase Dashboard**: Loom generates `_Overview.md` at the vault root summarizing all indexed files and symbol counts.
 
 ---
 
 ## Ignoring Files
 
-On first run, Loom generates a `.loomignore` file in your project root, seeded from your existing `.gitignore`. It uses the same pattern syntax as `.gitignore` (globs, `**`, negation with `!`, directory-only patterns with trailing `/`).
-
-The generated file has two clearly labelled sections:
+On first run, Loom generates a `.loomignore` file in your project root, seeded from your `.gitignore`. It uses standard `.gitignore` pattern syntax.
 
 ```
 # Loom-required exclusions (added automatically)
 .git/
+LoomVault/
 .obsidian-index/
 node_modules/
+target/
 
 # Contents seeded from your project's root .gitignore
-# (edit freely)
 ...
 ```
 
-Edit the second section freely. Do not remove the Loom-required exclusions at the top. Add `.loomignore` itself to your project's `.gitignore` so each developer gets their own.
+Add your vault folder name (e.g. `LoomVault/`) and `.loomignore` to your project's `.gitignore`.
 
 ---
 
 ## Configuration
 
-Loom reads an optional `loom.config.json` from the project root. Copy `loom.config.example.json` as a starting point:
+Loom reads an optional `loom.config.json` in the project root:
 
 ```json
 {
+  "vault": {
+    "name": "LoomVault"
+  },
   "watch": {
     "intervalMinutes": 2,
     "debounceSeconds": 5
@@ -118,103 +207,20 @@ Loom reads an optional `loom.config.json` from the project root. Copy `loom.conf
 }
 ```
 
-| Key | Default | Description |
-|---|---|---|
-| `watch.intervalMinutes` | `2` | How often the guaranteed interval timer fires in watch mode |
-| `watch.debounceSeconds` | `5` | Seconds of inactivity after a file change before Loom runs |
-
-If `loom.config.json` is absent or a field is invalid, defaults are used silently.
-
 ---
 
-## How It Works
-
-Loom runs in two passes:
-
-**Pass 1 — Parse:** Walks every supported file in the project, extracts all symbols (classes, methods, functions, variables, imports) using Tree-sitter ASTs, and builds a project-wide index.
-
-**Pass 2 — Write:** Resolves cross-file references from the full index, then writes one Markdown note per file and one per significant symbol. Notes are only written when their content has changed (SHA-256 hash diff), so Obsidian only reloads what actually changed.
-
-The two-pass design is required: a file note needs to know which other files import it, and that information is only available after all files have been parsed.
-
-### Note structure
-
-**File note**:
-- Lists all classes, functions, variables, and imports it contains
-- `## Imported by` — two-way link back to every file that imports this one
-
-**Symbol note**:
-- Shows the symbol's source code
-- `## Calls` — links to every symbol it calls
-- `## Called by` — two-way link back to every symbol that calls it
-- `## Used by` — files that import the file this symbol lives in
-- `## Referenced by` — symbols whose bodies reference this variable (variables only)
-
-Method notes are named `ClassName.MethodName.md` to avoid collisions when multiple classes define methods with the same name (common in Unity C# and Android Kotlin projects).
-
----
-
-## Contributing
-
-Contributions, bug reports, and language support improvements are very welcome.
+## Development & Testing
 
 ```bash
-# Clone the repo
-git clone https://github.com/antimyichael/loom.git
-cd loom
+# Run unit and integration tests
+cargo test
 
-# Install dependencies (--legacy-peer-deps is required)
-npm install --legacy-peer-deps
-
-# Run directly from source during development
-npm run loom -- /path/to/test/project
-
-# Or use the dev alias (equivalent)
-npm run dev -- /path/to/test/project
-
-# Build compiled output
-npm run build
-
-# Run the compiled output directly
-node dist/cli.js /path/to/test/project
+# Build optimized release binary
+cargo build --release
 ```
-
-### Key constraints (please read before contributing)
-
-- **Node.js 22 LTS only** — Node 25+ breaks native compilation; Node 19 causes ABI mismatches
-- **`tree-sitter@0.21.1` exactly** — breaking ABI change in 0.25.x; do not upgrade
-- **All grammar packages are pinned to exact versions** — do not add `^` carets
-- **All npm installs must use `--legacy-peer-deps`**
-- **No recursion in AST traversal** — all traversal uses explicit iterative stacks to prevent stack overflow on large files
-- **`filePathToNoteId()` must be used everywhere** a file note filename is constructed; never inline the path-separator replacement
-- **Method notes use `ClassName.MethodName.md`** format to avoid name collisions
-- **Do not merge the two passes** in `cli.ts` into one — cross-file import resolution requires the full index to be built first
-
-### Pinned grammar versions
-
-| Package | Version |
-|---|---|
-| `tree-sitter` | `0.21.1` |
-| `tree-sitter-typescript` | `0.21.2` |
-| `tree-sitter-python` | `0.21.0` |
-| `tree-sitter-bash` | `0.21.0` |
-| `tree-sitter-kotlin` | `0.3.8` |
-| `tree-sitter-cpp` | `0.22.3` |
-| `tree-sitter-c-sharp` | `0.21.1` |
-| `tree-sitter-java` | `0.21.0` |
-
----
-
-## Roadmap
-- **Phase 4 - VS Code Extension** Extension version of Loom for VS Code and VS Code forks, VS Codium, Eclipse Theia, and similar editors
-- **Phase 5 — JetBrains Plugin:** IntelliJ/Rider/Android Studio plugin in Kotlin, mirroring the VS Code extension architecture
-- **Phase 6 — Obsidian Plugin:** In-vault companion with a manual refresh button and last-parsed status in the sidebar
-- **Phase 7 — Incremental Parsing:** Only reparse files that have changed since the last run, using `lastParsed` timestamps from the symbol index
 
 ---
 
 ## License
 
-All Rights Reserved
-
-DataThorn Technologies, @antimyichael, @giusiam
+ISC License.

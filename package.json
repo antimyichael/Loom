@@ -1,27 +1,121 @@
 {
   "name": "@loom-code/loom",
-  "version": "0.1.7",
-  "description": "Weave your codebase into a navigable Obsidian vault — one note per file, one note per symbol.",
+  "version": "0.2.0",
+  "description": "Weave your codebase into a navigable Obsidian vault.",
   "author": "",
   "license": "ISC",
   "type": "module",
   "engines": {
-    "node": "22.x"
+    "node": ">=18.0.0"
   },
-  "main": "./dist/cli.js",
+  "main": "electron/main.cjs",
   "bin": {
-    "loom": "./dist/cli.js"
+    "loom": "./bin/loom.js"
   },
   "files": [
-    "dist/",
+    "bin/",
+    "electron/",
+    "build/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "install.sh"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "dev": "tsx src/cli.ts",
-    "loom": "tsx src/cli.ts",
-    "prepublishOnly": "npm run build"
+    "start": "electron electron/main.cjs",
+    "app": "electron electron/main.cjs",
+    "postinstall": "node ./bin/install.js",
+    "build": "cargo build --release",
+    "test": "cargo test",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.loomcode.loom",
+    "productName": "Loom",
+    "copyright": "Copyright © 2026 Loom Contributors",
+    "directories": {
+      "output": "dist-app",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "icon": "build/icon.icns",
+      "category": "public.app-category.developer-tools",
+      "extraResources": [
+        {
+          "from": "target/release/loom",
+          "to": "bin/loom"
+        }
+      ],
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "extraResources": [
+        {
+          "from": "target/release/loom.exe",
+          "to": "bin/loom.exe"
+        }
+      ],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Loom"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "category": "Development",
+      "extraResources": [
+        {
+          "from": "target/release/loom",
+          "to": "bin/loom"
+        }
+      ],
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
   },
   "keywords": [
     "obsidian",
@@ -32,22 +126,8 @@
     "graph",
     "cli"
   ],
-  "dependencies": {
-    "@loom-code/loom": "^0.1.7",
-    "chokidar": "^3.6.0",
-    "ignore": "^5.3.2",
-    "tree-sitter": "0.21.1",
-    "tree-sitter-bash": "0.21.0",
-    "tree-sitter-c-sharp": "0.21.1",
-    "tree-sitter-cpp": "0.22.3",
-    "tree-sitter-java": "0.21.0",
-    "tree-sitter-kotlin": "0.3.8",
-    "tree-sitter-python": "0.21.0",
-    "tree-sitter-typescript": "0.21.2",
-    "typescript": "^6.0.2"
-  },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "tsx": "^4.21.0"
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3"
   }
 }

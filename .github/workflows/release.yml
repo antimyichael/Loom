@@ -1,0 +1,122 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build - ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact_name: loom-macos-aarch64
+            archive_ext: tar.gz
+            builder_flag: --mac --arm64
+          - os: macos-13
+            target: x86_64-apple-darwin
+            artifact_name: loom-macos-x86_64
+            archive_ext: tar.gz
+            builder_flag: --mac --x64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: loom-linux-x86_64
+            archive_ext: tar.gz
+            builder_flag: --linux
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: loom-windows-x86_64
+            archive_ext: zip
+            builder_flag: --win
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package Binary (Unix)
+        if: matrix.os != 'windows-latest'
+        run: |
+          mkdir -p staging
+          cp target/${{ matrix.target }}/release/loom staging/
+          tar -czf ${{ matrix.artifact_name }}.tar.gz -C staging loom
+
+      - name: Package Binary (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          mkdir staging
+          Copy-Item target/${{ matrix.target }}/release/loom.exe staging/
+          Compress-Archive -Path staging/loom.exe -DestinationPath ${{ matrix.artifact_name }}.zip
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Prepare native binary for Electron packaging (Unix)
+        if: matrix.os != 'windows-latest'
+        run: |
+          mkdir -p target/release
+          cp target/${{ matrix.target }}/release/loom target/release/loom
+          chmod +x target/release/loom
+
+      - name: Prepare native binary for Electron packaging (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path target/release
+          Copy-Item target/${{ matrix.target }}/release/loom.exe target/release/loom.exe
+
+      - name: Package Desktop Application
+        run: npx electron-builder ${{ matrix.builder_flag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            ${{ matrix.artifact_name }}.${{ matrix.archive_ext }}
+            dist-app/*.dmg
+            dist-app/*.zip
+            dist-app/*.exe
+            dist-app/*.AppImage
+            dist-app/*.deb
+          if-no-files-found: warn
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true

@@ -1,19 +1,14 @@
-# Compiled output
 dist/
-
-# Generated vault — each developer's vault is local to their project
+dist-app/
+LoomVault/
 .obsidian-index/
-
-# Dependencies
 node_modules/
-
-# npm
 npm-debug.log*
 package-lock.json
-
-# OS / editor noise
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 .claude/
+target/
+legacy-ts/
