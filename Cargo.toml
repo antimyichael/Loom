@@ -1,11 +1,12 @@
 [package]
-name = "antimyichael"
+name = "loom-code"
 version = "0.2.1"
 edition = "2021"
 authors = ["Loom Contributors"]
 description = "Weave your codebase into a navigable Obsidian vault."
 license = "ISC"
 readme = "README.md"
+repository = "https://github.com/antimyichael/Loom"
 keywords = ["obsidian", "codebase", "ast", "tree-sitter", "documentation"]
 
 [lib]

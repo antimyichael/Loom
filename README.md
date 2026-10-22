@@ -33,7 +33,7 @@ Loom is packaged as a standalone native desktop application with full graphical 
 | **Windows** | `Loom-Setup-0.2.0.exe` | Standard Windows NSIS Installer & Portable `.exe` |
 | **Linux** | `Loom-0.2.0.AppImage`<br>`loom_0.2.0_amd64.deb` | Universal AppImage & Debian/Ubuntu Package |
 
-You can download the latest native installers directly from [GitHub Releases](https://github.com/loom-code/loom/releases).
+You can download the latest native installers directly from [GitHub Releases](https://github.com/antimyichael/Loom/releases).
 
 ### Desktop App Features
 - **Zero Configuration**: Double-click to launch like any native app. The Rust parsing engine is bundled inside.
@@ -68,7 +68,7 @@ Loom is built in Rust as a self-contained, high-performance static binary with *
 ### 1. One-Line Shell Installer (macOS & Linux)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/loom-code/loom/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/antimyichael/Loom/main/install.sh | sh
 ```
 
 ### 2. NPM / NPX (Zero Compilation)
@@ -91,7 +91,7 @@ cargo install --path .
 
 ### 4. Direct Binary Download
 
-Prebuilt standalone binaries for **macOS (Apple Silicon & Intel)**, **Linux (x86_64 & aarch64)**, and **Windows (x86_64)** are available on the [GitHub Releases](https://github.com/loom-code/loom/releases) page.
+Prebuilt standalone binaries for **macOS (Apple Silicon & Intel)**, **Linux (x86_64 & aarch64)**, and **Windows (x86_64)** are available on the [GitHub Releases](https://github.com/antimyichael/Loom/releases) page.
 
 ---
 

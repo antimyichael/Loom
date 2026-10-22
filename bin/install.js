@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const binDir = __dirname;
-const REPO = 'antimyichael/loom';
+const REPO = 'antimyichael/Loom';
 const VERSION = 'v0.2.1';
 
 export function getPlatformBinaryName() {

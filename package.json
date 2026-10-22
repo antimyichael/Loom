@@ -1,9 +1,17 @@
 {
-  "name": "antimyichael/loom",
+  "name": "@loom-code/loom",
   "version": "0.2.1",
   "description": "Weave your codebase into a navigable Obsidian vault.",
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antimyichael/Loom.git"
+  },
+  "bugs": {
+    "url": "https://github.com/antimyichael/Loom/issues"
+  },
+  "homepage": "https://github.com/antimyichael/Loom#readme",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"

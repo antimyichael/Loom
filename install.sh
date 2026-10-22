@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-REPO="antimyichael/loom"
+REPO="antimyichael/Loom"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
